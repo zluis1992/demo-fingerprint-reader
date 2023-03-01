@@ -16,10 +16,10 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "es2020",
+    "target": "es2017",
     "module": "es6",
     "lib": [
-      "es2020",
+      "es2018",
       "dom"
     ],
     "typeRoots": ["./src/app/core/modules/WenSdk","./node_modules/@types"],

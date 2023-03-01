@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AppServiceService } from './app-service.service'
 
 import{FingerprintReader
 , SampleFormat
@@ -21,11 +22,11 @@ export class AppComponent implements OnInit{
   ListaFingerprintReader:any
   InfoFingerprintReader:any
   ListaSamplesFingerprints:any
-  currentImageFinger:any
+  currentImageFinger: any = null
 
   private reader: FingerprintReader
 
-  constructor(){
+  constructor(private appService: AppServiceService){
     this.reader = new FingerprintReader()
   }
 
@@ -36,6 +37,9 @@ export class AppComponent implements OnInit{
     this.reader.on("AcquisitionStarted", this.onAcquisitionStarted)
     this.reader.on("AcquisitionStopped", this.onAcquisitionStopped)
     this.reader.on("SamplesAcquired", this.onSamplesAcquired)
+
+    /* Start */
+    this.ListarDispositivos()
   }
 
   ngOnDestroy(): void {
@@ -50,19 +54,14 @@ export class AppComponent implements OnInit{
   private onDeviceDisconnected = (event: DeviceDisconnected) => { }
 
   private onAcquisitionStarted = (event: AcquisitionStarted) => {
-    console.log("en el evento: onAcquisitionStarted");
-    console.log(event);
-   }
+  }
 
    private onAcquisitionStopped = (event: AcquisitionStopped) => {
-    console.log("en el evento: onAcquisitionStopped");
-    console.log(event);
    }
 
   private onSamplesAcquired = (event: SamplesAcquired) => {
-  console.log("en el evento: onSamplesAcquired");
-  console.log(event);
-  this.ListaSamplesFingerprints= event
+    this.ListaSamplesFingerprints = event
+    this.MostrarHuella()
   }
 
   public ListarDispositivos() {
@@ -71,7 +70,7 @@ export class AppComponent implements OnInit{
     ])
     .then(result => {
       this.ListaFingerprintReader = result[0]
-      console.log(this.ListaFingerprintReader)
+      this.InformacionDispositivos()
     })
     .catch(error => console.log)
   }
@@ -82,9 +81,33 @@ export class AppComponent implements OnInit{
     ])
     .then(result => {
       this.InfoFingerprintReader = result[0]
-      console.log(this.InfoFingerprintReader)
+      this.StartCapture()
     })
     .catch(error => console.log)
+  }
+
+  public StartCapture() {
+    this.reader.startAcquisition(SampleFormat.PngImage, this.InfoFingerprintReader['DeviceID'])
+    .then((result: any) => {
+      this.ListaSamplesFingerprints = result
+    })
+    .catch((error: any) => console.log)
+  }
+
+  public StopCapture() {
+    this.reader.stopAcquisition(this.InfoFingerprintReader['DeviceID'])
+    .catch((error: any) => console.log)
+  }
+
+  public MostrarHuella() {
+    var listImages = this.ListaSamplesFingerprints['samples']
+    var lsize = Object.keys(listImages).length
+    if(lsize != null && lsize != undefined) {
+      this.currentImageFinger = listImages[0]
+      this.currentImageFinger = this.currentImageFinger.replace(/_/g, "/")
+      this.currentImageFinger = this.currentImageFinger.replace(/-/g, "+")
+      this.appService.setFingerPrint(this.currentImageFinger)
+    }
   }
 
 }
